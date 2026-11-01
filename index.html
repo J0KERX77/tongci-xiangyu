@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07040f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="同词相遇">
+<meta name="format-detection" content="telephone=no">
+<meta name="color-scheme" content="dark">
+<title>同词相遇 · 联机版</title>
+<style>
+  :root{
+    --gold:#ffd166;--rose:#ff5f8f;--violet:#7c5cff;--mint:#5ff0c0;
+    --dim:rgba(255,255,255,.56);--dim-2:rgba(255,255,255,.34);
+    --line:rgba(255,255,255,.12);
+    --app-h:100%;--app-top:0px;--pad:22px;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  [hidden]{display:none!important;}
+  html,body{
+    margin:0;padding:0;height:100%;overflow:hidden;background:#07040f;color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  }
+  body{user-select:none;-webkit-user-select:none;}
+  input{font-family:inherit;user-select:text;-webkit-user-select:text;}
+  button{font-family:inherit;color:inherit;}
+
+  #app{position:fixed;left:0;right:0;top:var(--app-top);height:var(--app-h);overflow:hidden;}
+
+  .sky{position:absolute;inset:0;z-index:0;overflow:hidden;background:#07040f;}
+  .blob{position:absolute;border-radius:50%;filter:blur(64px);will-change:transform;}
+  .b1{width:64vw;height:64vw;max-width:430px;max-height:430px;left:-14vw;top:-10vh;background:#5b3bff;opacity:.55;animation:float1 17s ease-in-out infinite alternate;}
+  .b2{width:58vw;height:58vw;max-width:390px;max-height:390px;right:-16vw;bottom:-8vh;background:#ff2d78;opacity:.40;animation:float2 20s ease-in-out infinite alternate;}
+  .b3{width:40vw;height:40vw;max-width:260px;max-height:260px;left:38%;top:58%;background:#1e9cff;opacity:.22;animation:float1 24s ease-in-out infinite alternate-reverse;}
+  .sky::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 0%,transparent 30%,rgba(7,4,15,.55) 78%,#07040f 100%);}
+  @keyframes float1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(8vw,7vh,0) scale(1.15)}}
+  @keyframes float2{from{transform:translate3d(0,0,0) scale(1.1)}to{transform:translate3d(-9vw,-6vh,0) scale(.95)}}
+
+  .screen{
+    position:absolute;inset:0;z-index:1;max-width:560px;margin:0 auto;
+    display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top,0px) + 20px) var(--pad) calc(env(safe-area-inset-bottom,0px) + 20px);
+    animation:screenIn .4s cubic-bezier(.22,.9,.24,1) both;
+  }
+  @keyframes screenIn{from{opacity:0;transform:translateY(14px) scale(.995)}to{opacity:1;transform:none}}
+
+  .btn{
+    appearance:none;border:0;font-size:16px;font-weight:800;letter-spacing:.03em;
+    border-radius:999px;padding:17px 26px;cursor:pointer;color:#1a0d24;
+    background:linear-gradient(135deg,#ffe9b0,#ffd166 45%,#ffb37a);
+    box-shadow:0 14px 34px -14px rgba(255,196,94,.9),inset 0 1px 0 rgba(255,255,255,.65);
+    transition:transform .16s ease,filter .16s ease;
+  }
+  .btn:active{transform:scale(.965);}
+  .btn:disabled{opacity:.55;filter:saturate(.6);}
+  .btn.wide{display:block;width:100%;}
+  .btn.ghost{background:rgba(255,255,255,.045);color:rgba(255,255,255,.82);font-weight:700;border:1px solid var(--line);box-shadow:none;font-size:15px;padding:15px 24px;}
+  .iconbtn{
+    width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(255,255,255,.05);color:rgba(255,255,255,.72);font-size:16px;
+    display:grid;place-items:center;cursor:pointer;padding:0;line-height:1;
+  }
+  .actions{display:flex;flex-direction:column;gap:10px;margin-top:22px;}
+
+  /* -------- 首页 -------- */
+  .home{justify-content:space-between;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .home-top{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:2vh;}
+  .mark{width:70px;height:70px;margin-bottom:4px;filter:drop-shadow(0 18px 34px rgba(124,92,255,.45));}
+  .h1{
+    font-size:clamp(38px,12vw,54px);font-weight:900;letter-spacing:.05em;margin:6px 0 0;
+    background:linear-gradient(180deg,#fff 18%,#ffe9b8 66%,#ffc972);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 16px 36px rgba(255,183,94,.28));
+  }
+  .latin{margin:12px 0 0;font-size:9px;letter-spacing:.44em;text-indent:.44em;color:rgba(255,255,255,.32);font-weight:600;}
+  .lead{margin:18px 0 0;font-size:13.5px;line-height:1.9;color:var(--dim);}
+
+  .home-bottom{display:flex;flex-direction:column;gap:12px;}
+  .label{font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.34);margin:0 0 -4px 4px;}
+  .inputrow{
+    display:flex;align-items:center;gap:10px;padding:4px 18px;border-radius:18px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);
+  }
+  .inputrow input{
+    flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;
+    font-size:16px;font-weight:700;padding:15px 0;
+  }
+  .inputrow input::placeholder{color:rgba(255,255,255,.22);font-weight:600;}
+  .code-input{
+    text-align:center;letter-spacing:.4em;text-indent:.4em;font-size:22px!important;
+    font-weight:900!important;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;
+  }
+
+  .seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid var(--line);}
+  .seg button{
+    flex:1;appearance:none;border:0;background:transparent;color:var(--dim);
+    font-size:13px;font-weight:600;padding:11px 0;border-radius:999px;
+    transition:background .2s,color .2s;cursor:pointer;
+  }
+  .seg button.on{background:rgba(255,255,255,.15);color:#fff;box-shadow:0 6px 16px -8px #000;}
+  .seg button:disabled{opacity:.4;}
+  .stat{margin:2px 0 0;text-align:center;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.04em;}
+
+  /* -------- 大厅 -------- */
+  .lobby{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .topbar{display:flex;align-items:center;gap:12px;flex:0 0 auto;margin-bottom:10px;}
+  .topbar .title{font-size:13px;letter-spacing:.16em;color:var(--dim);}
+  .spacer{flex:1;}
+  .roomcode{
+    text-align:center;font-family:ui-monospace,Menlo,monospace;font-weight:800;
+    font-size:clamp(40px,13vw,54px);letter-spacing:.22em;text-indent:.22em;
+    color:#ffe6ae;text-shadow:0 0 34px rgba(255,209,102,.4);margin:18px 0 4px;
+  }
+  .roomhint{text-align:center;font-size:12px;color:rgba(255,255,255,.36);margin:0;}
+  .seats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 18px;}
+  .seat{
+    padding:18px 12px;border-radius:20px;text-align:center;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);
+  }
+  .seat.empty{border-style:dashed;color:rgba(255,255,255,.3);}
+  .seat .nm{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .seat .tag{display:inline-block;margin-top:9px;font-size:10.5px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);}
+  .seat.ready .tag{background:rgba(95,240,192,.14);color:#8ef0c9;}
+  .seat.me{border-color:rgba(255,209,102,.35);}
+  .lobby .actions{margin-top:auto;}
+
+  /* -------- 对局 -------- */
+  .play-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto;}
+  .roundbadge{font-size:11.5px;letter-spacing:.2em;color:var(--dim-2);}
+  .roundbadge b{color:#fff;font-size:15px;letter-spacing:0;margin:0 3px;}
+  .timer{position:relative;width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;}
+  .timer svg{position:absolute;inset:0;width:44px;height:44px;transform:rotate(-90deg);}
+  .timer .bg{fill:none;stroke:rgba(255,255,255,.10);stroke-width:2.6;}
+  .timer .fg{fill:none;stroke:var(--gold);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:119.4;stroke-dashoffset:0;transition:stroke-dashoffset .12s linear;}
+  .timer span{font-size:12px;font-weight:700;color:rgba(255,255,255,.75);font-variant-numeric:tabular-nums;}
+  .timer.warn .fg{stroke:var(--rose);}
+  .timer.warn span{color:var(--rose);}
+  .timer.off svg{display:none;}
+  .timer.off span{font-size:16px;color:var(--dim);}
+
+  .play-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;}
+  .play-inner{margin:auto 0;display:flex;flex-direction:column;gap:16px;padding:14px 0;}
+
+  .chain{text-align:center;}
+  .chain-label{margin:0 0 12px;font-size:10.5px;letter-spacing:.24em;color:rgba(255,255,255,.3);}
+  .chain-words{display:flex;align-items:center;justify-content:center;gap:10px;}
+  .chip{display:inline-block;max-width:44%;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.075);border:1px solid var(--line);font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chain-plus{color:rgba(255,255,255,.28);font-size:13px;}
+  .chain-hint{margin:12px 0 0;font-size:11.5px;color:rgba(255,255,255,.34);}
+
+  .prompt{margin:0;text-align:center;font-size:15px;color:rgba(255,255,255,.66);line-height:1.6;}
+  .field{position:relative;padding:4px 0 14px;}
+  .field::after{content:"";position:absolute;left:10%;right:10%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);}
+  .word-input{
+    width:100%;background:none;border:0;outline:none;text-align:center;color:#fff;
+    font-size:clamp(28px,9vw,40px);font-weight:800;letter-spacing:.05em;
+    padding:12px 0;caret-color:var(--gold);border-radius:12px;
+  }
+  .word-input::placeholder{color:rgba(255,255,255,.14);font-weight:700;letter-spacing:.12em;}
+  .field.shake{animation:shake .4s;}
+  @keyframes shake{10%,90%{transform:translateX(-3px)}30%,70%{transform:translateX(4px)}50%{transform:translateX(-7px)}}
+
+  .waitbox{text-align:center;padding:10px 0 4px;}
+  .sealed{font-size:30px;line-height:1;}
+  .sealed-word{margin:10px 0 6px;font-size:30px;font-weight:900;color:#ffe6ae;word-break:break-all;line-height:1.25;}
+  .sealed-hint{margin:0;font-size:12px;color:rgba(255,255,255,.4);}
+  .status{text-align:center;font-size:12px;color:rgba(255,255,255,.42);min-height:18px;margin:0;}
+
+  /* -------- 揭晓 -------- */
+  .reveal{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .reveal-inner{margin:auto 0;width:100%;display:flex;flex-direction:column;}
+  .reveal-kicker{margin:0 0 24px;text-align:center;font-size:10.5px;letter-spacing:.26em;color:rgba(255,255,255,.34);}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;perspective:1000px;}
+  .card{
+    padding:26px 12px;border-radius:24px;text-align:center;
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.035));
+    border:1px solid rgba(255,255,255,.14);box-shadow:0 26px 50px -34px #000;
+    animation:cardIn .6s cubic-bezier(.2,.9,.25,1) both;backface-visibility:hidden;
+  }
+  .card.d2{animation-delay:.14s;}
+  @keyframes cardIn{from{opacity:0;transform:rotateY(-78deg) scale(.88)}to{opacity:1;transform:none}}
+  .card .who{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--dim-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card .word{display:block;margin-top:12px;font-size:clamp(21px,6.8vw,28px);font-weight:900;word-break:break-all;line-height:1.3;}
+  .card.hit{border-color:rgba(255,209,102,.62);background:linear-gradient(180deg,rgba(255,209,102,.22),rgba(255,209,102,.05));box-shadow:0 0 0 1px rgba(255,209,102,.3),0 30px 60px -34px rgba(255,209,102,.95);}
+  .card.hit .word{color:#fff3cf;text-shadow:0 0 26px rgba(255,209,102,.65);}
+  .verdict{margin:26px 0 0;text-align:center;font-size:14px;color:var(--dim);min-height:22px;}
+  .verdict b{color:var(--gold);}
+
+  /* -------- 胜利 -------- */
+  .win{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .win-card{margin:auto 0 0;}
+  .win .actions{margin:14px 0 auto;}
+  .win-card{
+    padding:32px 20px 24px;border-radius:30px;text-align:center;
+    background:radial-gradient(150% 110% at 50% -10%,rgba(255,209,102,.20),rgba(255,255,255,.035) 62%);
+    border:1px solid rgba(255,209,102,.3);
+    box-shadow:0 46px 90px -56px rgba(255,209,102,.85),inset 0 1px 0 rgba(255,255,255,.14);
+    animation:cardIn .7s cubic-bezier(.2,.9,.25,1) both;
+  }
+  .win-kicker{margin:0;font-size:10px;letter-spacing:.42em;text-indent:.42em;color:var(--gold);font-weight:700;}
+  .win-title{margin:16px 0 0;font-size:19px;font-weight:800;}
+  .win-title b{font-size:23px;color:var(--gold);margin:0 2px;}
+  .win-word{
+    margin:12px 0 2px;font-size:clamp(40px,14vw,56px);font-weight:900;letter-spacing:.04em;
+    background:linear-gradient(180deg,#fff 10%,#ffe6ae 60%,#ffc06b);
+    -webkit-background-clip:text;background-clip:text;color:transparent;word-break:break-all;line-height:1.2;
+  }
+  .win-tag{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;font-size:11px;font-weight:700;color:#ffdfa6;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.26);}
+  .win-sub{margin:10px 0 0;font-size:11.5px;color:var(--dim-2);}
+  .win-chain{margin:20px 0 0;max-height:34vh;overflow-y:auto;text-align:left;-webkit-overflow-scrolling:touch;}
+  .chain-row{display:grid;grid-template-columns:24px 1fr 12px 1fr;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px dashed rgba(255,255,255,.075);font-size:13px;color:rgba(255,255,255,.62);}
+  .chain-row:last-child{border-bottom:0;}
+  .chain-row .idx{font-size:10px;color:rgba(255,255,255,.26);font-variant-numeric:tabular-nums;}
+  .chain-row .w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chain-row .x{color:rgba(255,255,255,.22);font-size:10px;text-align:center;}
+  .chain-row.hit .w{color:var(--gold);font-weight:700;}
+
+  /* -------- 结束 -------- */
+  .center{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;-webkit-overflow-scrolling:touch;}
+  .center>:first-child{margin-top:auto;}
+  .center>:last-child{margin-bottom:auto;}
+  .over-emoji{font-size:50px;line-height:1;animation:pop .6s cubic-bezier(.2,1.5,.4,1) both;}
+  @keyframes pop{from{opacity:0;transform:scale(.5) rotate(-12deg)}to{opacity:1;transform:none}}
+  .over-title{margin:22px 0 0;font-size:23px;font-weight:900;}
+  .over-text{margin:14px 0 0;font-size:13.5px;line-height:1.9;color:var(--dim);max-width:300px;}
+  .over-chain{margin:24px 0 4px;max-height:32vh;overflow-y:auto;width:100%;text-align:left;-webkit-overflow-scrolling:touch;}
+
+  /* -------- 其它 -------- */
+  #fx{position:fixed;inset:0;z-index:9;pointer-events:none;}
+  .toast{
+    position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:40;
+    transform:translate(-50%,12px);opacity:0;pointer-events:none;
+    padding:11px 20px;border-radius:999px;font-size:13px;color:#fff;
+    background:rgba(30,20,48,.94);border:1px solid rgba(255,255,255,.14);
+    backdrop-filter:blur(10px);transition:opacity .22s,transform .22s;white-space:nowrap;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0);}
+  .banner{
+    position:fixed;left:0;right:0;top:0;z-index:35;
+    padding:calc(env(safe-area-inset-top,0px) + 7px) 14px 7px;
+    text-align:center;font-size:12px;background:rgba(138,47,74,.94);color:#ffd9e3;
+  }
+
+  @media (max-height:700px){
+    .mark{width:58px;height:58px;}
+    .lead{margin-top:12px;line-height:1.8;}
+    .home-top{padding-top:1vh;}
+    .roomcode{margin:10px 0 2px;}
+    .seats{margin:14px 0 12px;}
+    .play-inner{gap:12px;padding:8px 0;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="sky"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+
+  <!-- ================= 首页 ================= -->
+  <section class="screen home" data-screen="home">
+    <div class="home-top">
+      <svg class="mark" viewBox="0 0 96 96" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="ga" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9b0"/><stop offset="1" stop-color="#ff9a5c"/></linearGradient>
+          <linearGradient id="gb" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9a6ff"/><stop offset="1" stop-color="#6f4dff"/></linearGradient>
+        </defs>
+        <circle cx="36" cy="48" r="25" stroke="url(#ga)" stroke-width="2.6" opacity=".95"/>
+        <circle cx="60" cy="48" r="25" stroke="url(#gb)" stroke-width="2.6" opacity=".95"/>
+        <circle cx="48" cy="48" r="16" fill="url(#ga)" opacity=".12"/>
+        <circle cx="48" cy="48" r="3.6" fill="#ffd166"/>
+      </svg>
+      <h1 class="h1">同词相遇</h1>
+      <p class="latin">SAME WORD · SAME SOUL</p>
+      <p class="lead">各想一个词，同时揭晓。<br>没撞上，就再靠近一点。</p>
+    </div>
+
+    <div class="home-bottom">
+      <p class="label">你的名字</p>
+      <div class="inputrow"><input id="h_name" maxlength="8" placeholder="给自己起个名字" autocomplete="off"></div>
+
+      <div class="seg" id="h_seg">
+        <button type="button" data-tab="create" class="on">创建房间</button>
+        <button type="button" data-tab="join">加入房间</button>
+      </div>
+
+      <div id="h_joinWrap" hidden>
+        <div class="inputrow"><input id="h_code" class="code-input" maxlength="4" placeholder="房间码" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+      </div>
+
+      <div id="h_limitWrap">
+        <p class="label" style="margin:2px 0 8px 4px">每轮限时</p>
+        <div class="seg" id="h_limit">
+          <button type="button" data-l="60" class="on">60 秒</button>
+          <button type="button" data-l="30">30 秒</button>
+          <button type="button" data-l="0">不限时</button>
+        </div>
+      </div>
+
+      <button class="btn wide" id="h_go" type="button">创建房间</button>
+      <p class="stat" id="h_hint">和朋友各用一台手机，房间码一对上就开局</p>
+    </div>
+  </section>
+
+  <!-- ================= 大厅 ================= -->
+  <section class="screen lobby" data-screen="lobby" hidden>
+    <div class="topbar">
+      <button class="iconbtn" id="l_leave" type="button" aria-label="离开">←</button>
+      <span class="title">等 待 开 局</span>
+      <span class="spacer"></span>
+      <button class="iconbtn" id="l_share" type="button" aria-label="分享">⤴</button>
+    </div>
+
+    <div class="roomcode" id="l_codeBig">----</div>
+    <p class="roomhint">把房间码发给对方，或者点右上角直接分享链接</p>
+
+    <div class="seats">
+      <div class="seat me" id="l_seatMe">
+        <div class="nm" id="l_meName">我</div>
+        <div class="tag" id="l_meTag">已进入</div>
+      </div>
+      <div class="seat empty" id="l_seatOther">
+        <div class="nm" id="l_otherName">空位</div>
+        <div class="tag" id="l_otherTag">等待加入</div>
+      </div>
+    </div>
+
+    <p class="label" style="margin:0 0 8px 4px">每轮限时（房主可改）</p>
+    <div class="seg" id="l_limit">
+      <button type="button" data-l="60">60 秒</button>
+      <button type="button" data-l="30">30 秒</button>
+      <button type="button" data-l="0">不限时</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn wide" id="l_ready" type="button">我准备好了</button>
+    </div>
+  </section>
+
+  <!-- ================= 对局 ================= -->
+  <section class="screen" data-screen="play" hidden>
+    <header class="play-bar">
+      <button class="iconbtn" id="p_leave" type="button" aria-label="离开">✕</button>
+      <div class="roundbadge">第<b id="p_round">1</b>轮</div>
+      <div class="timer" id="p_timer">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="19"/><circle class="fg" id="ringFg" cx="22" cy="22" r="19"/></svg>
+        <span id="p_timerText">60</span>
+      </div>
+    </header>
+
+    <div class="play-body">
+      <div class="play-inner">
+        <div class="chain" id="p_chain" hidden>
+          <p class="chain-label">上 一 轮 的 词</p>
+          <div class="chain-words">
+            <span class="chip" id="p_chip1">—</span><span class="chain-plus">＋</span><span class="chip" id="p_chip2">—</span>
+          </div>
+          <p class="chain-hint">顺着这两个词，各想一个新词</p>
+        </div>
+
+        <p class="prompt" id="p_prompt">想到什么词，就写什么</p>
+
+        <div class="field" id="p_field">
+          <input class="word-input" id="p_input" type="text" maxlength="12" placeholder="一个词"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+        </div>
+        <button class="btn wide" id="p_submit" type="button">就是它</button>
+
+        <div class="waitbox" id="p_wait" hidden>
+          <div class="sealed">🔒</div>
+          <p class="sealed-word" id="p_myWord">—</p>
+          <p class="sealed-hint">已封存，对方看不到，写好一起揭晓</p>
+        </div>
+
+        <p class="status" id="p_other"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 揭晓 ================= -->
+  <section class="screen reveal" data-screen="reveal" hidden>
+    <div class="reveal-inner">
+      <p class="reveal-kicker">第 <span id="r_round">1</span> 轮 · 揭 晓</p>
+      <div class="cards">
+        <div class="card" id="r_cardMe"><span class="who" id="r_whoMe">我</span><span class="word" id="r_wordMe">—</span></div>
+        <div class="card d2" id="r_cardOther"><span class="who" id="r_whoOther">对方</span><span class="word" id="r_wordOther">—</span></div>
+      </div>
+      <div class="verdict" id="r_verdict"></div>
+      <div class="actions">
+        <button class="btn wide" id="r_next" type="button">继续联想 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 胜利 ================= -->
+  <section class="screen win" data-screen="win" hidden>
+    <div class="win-card">
+      <p class="win-kicker">同 词 相 遇</p>
+      <h2 class="win-title">第 <b id="w_round">1</b> 轮撞上了</h2>
+      <div class="win-word" id="w_word">—</div>
+      <div class="win-tag" id="w_tag">心意相通</div>
+      <p class="win-sub" id="w_sub"></p>
+      <div class="win-chain" id="w_chain"></div>
+    </div>
+    <div class="actions">
+      <button class="btn wide" id="w_share" type="button">截图 / 分享战绩</button>
+      <button class="btn ghost wide" id="w_again" type="button">再来一局</button>
+    </div>
+  </section>
+
+  <!-- ================= 结束 ================= -->
+  <section class="screen" data-screen="over" hidden>
+    <div class="center">
+      <div class="over-emoji" id="o_emoji">⌛</div>
+      <h2 class="over-title" id="o_title">时间到</h2>
+      <p class="over-text" id="o_text"></p>
+      <div class="over-chain" id="o_chain"></div>
+    </div>
+    <div class="actions">
+      <button class="btn wide" id="o_again" type="button">再来一局</button>
+      <button class="btn ghost wide" id="o_home" type="button">回到首页</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<canvas id="fx"></canvas>
+<div class="banner" id="banner" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+  var screens = {};
+  Array.prototype.forEach.call(document.querySelectorAll('[data-screen]'), function (el) {
+    screens[el.getAttribute('data-screen')] = el;
+  });
+
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  var S = {
+    session: null,     // { code, pid, token }
+    st: null,          // 服务端状态
+    v: 0,              // 版本号
+    off: 0,            // 服务端时间 - 本地时间
+    alive: false,
+    err: '',
+    lastRound: -1,
+    pending: false,
+    mode: 'create',
+    limit: 60
+  };
+
+  /* ================= 音效 / 撒花 ================= */
+  var AC = null;
+  function ac() {
+    if (!AC) {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return null;
+      try { AC = new C(); } catch (e) { return null; }
+    }
+    if (AC.state === 'suspended') { try { AC.resume(); } catch (e) {} }
+    return AC;
+  }
+  function tone(freq, dur, type, vol, delay) {
+    var a = ac(); if (!a) return;
+    var t = a.currentTime + (delay || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol == null ? 0.14 : vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + (dur || 0.12) + 0.03);
+  }
+  function sfxWin() {
+    [523, 659, 784, 1046].forEach(function (f, i) { tone(f, 0.32, 'triangle', 0.12, i * 0.10); });
+  }
+  function vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  var fx = $('fx'), ctx = fx.getContext('2d');
+  var parts = [], rafId = null, CW = 0, CH = 0;
+  function sizeFx() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    CW = window.innerWidth; CH = window.innerHeight;
+    fx.width = Math.round(CW * dpr); fx.height = Math.round(CH * dpr);
+    fx.style.width = CW + 'px'; fx.style.height = CH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  var COLORS = ['#ffd166', '#ff5f8f', '#7c5cff', '#5ff0c0', '#ffffff', '#ffb37a'];
+  function burst(n) {
+    n = n || 120;
+    for (var i = 0; i < n; i++) {
+      parts.push({
+        x: CW * 0.5 + (Math.random() - 0.5) * CW * 0.55,
+        y: CH * 0.42 + (Math.random() - 0.5) * 70,
+        vx: (Math.random() - 0.5) * 10, vy: -Math.random() * 12 - 2,
+        g: 0.26 + Math.random() * 0.18, w: 4 + Math.random() * 8, h: 3 + Math.random() * 5,
+        rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.32,
+        c: COLORS[i % COLORS.length], life: 1
+      });
+    }
+    if (!rafId) loopFx();
+  }
+  function loopFx() {
+    ctx.clearRect(0, 0, CW, CH);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.995;
+      p.rot += p.vr; p.life -= 0.0085;
+      if (p.life <= 0 || p.y > CH + 60) { parts.splice(i, 1); continue; }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (parts.length) rafId = requestAnimationFrame(loopFx);
+    else { rafId = null; ctx.clearRect(0, 0, CW, CH); }
+  }
+
+  /* ================= 小工具 ================= */
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function setText(el, v) { if (el && el.textContent !== v) el.textContent = v; }
+  function otherOf(you) { return you === 'p1' ? 'p2' : 'p1'; }
+  function chainHTML(history) {
+    return history.map(function (h, i) {
+      var a = h.a || '—', b = h.b || '—';
+      return '<div class="chain-row' + (h.hit ? ' hit' : '') + '">' +
+        '<span class="idx">' + (i + 1) + '</span>' +
+        '<span class="w">' + esc(a) + '</span>' +
+        '<span class="x">／</span>' +
+        '<span class="w">' + esc(b) + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, 1800);
+  }
+
+  function paintBanner() {
+    var b = $('banner');
+    if (!S.err) { b.hidden = true; return; }
+    b.hidden = false;
+    b.textContent = S.err;
+  }
+
+  var ERR = {
+    no_room: '房间不存在或已失效',
+    full: '房间已经满员了',
+    started: '这局已经开始了，等他们打完再来',
+    bad_phase: '现在不能操作',
+    already: '你已经提交过了',
+    empty: '写一个字试试',
+    busy: '服务器繁忙，稍后再试',
+    server: '服务器开小差了'
+  };
+  function errText(code) { return ERR[code] || '出错了：' + code; }
+
+  /* ================= 网络 ================= */
+  function api(action, extra) {
+    var body = Object.assign({ action: action }, extra || {});
+    if (S.session) {
+      body.code = S.session.code;
+      body.pid = S.session.pid;
+      body.token = S.session.token;
+    }
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = null;
+    if (ctrl) {
+      timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 15000);
+    }
+    var clear = function () { if (timer) { clearTimeout(timer); timer = null; } };
+    return fetch('/api/act', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      clear();
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }, function (e) {
+      clear();
+      throw e;
+    });
+  }
+
+  function applyResponse(d) {
+    S.off = d.now - Date.now();
+    S.v = d.v;
+    S.st = d.state;
+  }
+
+  var pollGen = 0;
+
+  function pollLoop() {
+    if (S.alive) return;
+    S.alive = true;
+    var my = ++pollGen;
+
+    (function run() {
+      var step = function () {
+        // 被新一轮取代（比如刚离开又新建房间）就悄悄退出，别去动新房间的状态
+        if (my !== pollGen) return;
+        if (!S.alive || !S.session) { S.alive = false; return; }
+
+        api('state', { v: S.v }).then(function (d) {
+          if (my !== pollGen) return;
+          if (!S.alive || !S.session) { S.alive = false; return; }
+          if (d.error) { fatal(d.error); return; }
+          applyResponse(d);
+          if (S.err) { S.err = ''; paintBanner(); }
+          render();
+          step();
+        }).catch(function () {
+          if (my !== pollGen) return;
+          if (!S.alive) return;
+          S.err = '连接不太稳，正在重试…';
+          paintBanner();
+          setTimeout(step, 1200);
+        });
+      };
+      step();
+    })();
+  }
+
+  function fatal(code) {
+    S.alive = false;
+    pollGen += 1;
+    S.session = null;
+    S.st = null;
+    S.v = 0;
+    store.del('tcxy.online.session');
+    show('home');
+    toast(ERR[code] || '房间已失效');
+  }
+
+  /* ================= 渲染 ================= */
+  function show(name) {
+    Object.keys(screens).forEach(function (k) {
+      var hide = (k !== name);
+      if (screens[k].hidden !== hide) screens[k].hidden = hide;
+    });
+  }
+
+  var lastPhase = '';
+
+  function render() {
+    var st = S.st;
+    if (!st) return;
+    var name = 'lobby';
+    if (st.phase === 'play') name = 'play';
+    else if (st.phase === 'reveal') name = 'reveal';
+    else if (st.phase === 'win') name = 'win';
+    else if (st.phase === 'over') name = 'over';
+
+    show(name);
+    if (name !== lastPhase) {
+      if (name === 'win') { burst(140); sfxWin(); vibrate([0, 40, 60, 40]); }
+      if (name === 'reveal') { tone(392, 0.16, 'sine', 0.1); tone(523, 0.2, 'sine', 0.09, 0.1); }
+      lastPhase = name;
+    }
+
+    if (name === 'lobby') renderLobby(st);
+    else if (name === 'play') renderPlay(st);
+    else if (name === 'reveal') renderReveal(st);
+    else if (name === 'win') renderWin(st);
+    else if (name === 'over') renderOver(st);
+  }
+
+  function renderLobby(st) {
+    var other = otherOf(st.you);
+    var meName = st.names[st.you] || '我';
+    var otherName = st.names[other];
+
+    setText($('l_codeBig'), st.code);
+
+    setText($('l_meName'), meName);
+    var meReady = st.ready[st.you];
+    setText($('l_meTag'), meReady ? '已准备' : '已进入');
+    $('l_seatMe').classList.toggle('ready', !!meReady);
+
+    if (otherName) {
+      $('l_seatOther').classList.remove('empty');
+      setText($('l_otherName'), otherName);
+      setText($('l_otherTag'), st.ready[other] ? '已准备' : '已进入');
+      $('l_seatOther').classList.toggle('ready', !!st.ready[other]);
+    } else {
+      $('l_seatOther').classList.add('empty');
+      setText($('l_otherName'), '空位');
+      setText($('l_otherTag'), '等待加入');
+      $('l_seatOther').classList.remove('ready');
+    }
+
+    var isHost = st.host === st.you;
+    Array.prototype.forEach.call($('l_limit').querySelectorAll('button'), function (b) {
+      var v = Number(b.getAttribute('data-l'));
+      b.classList.toggle('on', v === st.timeLimit);
+      b.disabled = !isHost;
+    });
+
+    var btn = $('l_ready');
+    btn.disabled = !otherName;
+    setText(btn, meReady ? '取消准备' : (otherName ? '我准备好了' : '等对方进来'));
+  }
+
+  function renderPlay(st) {
+    var other = otherOf(st.you);
+    var oName = st.names[other] || '对方';
+    var isNew = (st.round !== S.lastRound);
+
+    setText($('p_round'), String(st.round));
+
+    var prev = st.history.length ? st.history[st.history.length - 1] : null;
+    if (prev && !prev.timeout) {
+      $('p_chain').hidden = false;
+      setText($('p_chip1'), prev.a || '—');
+      setText($('p_chip2'), prev.b || '—');
+    } else {
+      $('p_chain').hidden = true;
+    }
+
+    setText($('p_prompt'), st.round > 1 ? '顺着上一轮的两个词，各想一个新词' : '想到什么词，就写什么');
+
+    if (isNew) {
+      S.lastRound = st.round;
+      $('p_input').value = '';
+      $('p_input').disabled = false;
+      setTimeout(function () {
+        if (screens.play && !screens.play.hidden && !$('p_input').disabled) {
+          try { $('p_input').focus({ preventScroll: true }); } catch (e) { try { $('p_input').focus(); } catch (e2) {} }
+        }
+      }, 80);
+    }
+
+    var done = !!st.submitted[st.you];
+    $('p_field').hidden = done;
+    $('p_submit').hidden = done;
+    $('p_wait').hidden = !done;
+    if (done) setText($('p_myWord'), st.youWord || '—');
+
+    var oDone = !!st.submitted[other];
+    if (st.paused) {
+      setText($('p_other'), oName + ' 掉线了，倒计时已暂停');
+    } else if (oDone) {
+      setText($('p_other'), oName + ' 已经写好了，就等你');
+    } else {
+      setText($('p_other'), oName + ' 正在想…');
+    }
+  }
+
+  function renderReveal(st) {
+    var other = otherOf(st.you);
+    var h = st.history.length ? st.history[st.history.length - 1] : { hit: false };
+    var hit = !!(h && h.hit);
+
+    setText($('r_round'), String(st.round));
+    setText($('r_whoMe'), (st.names[st.you] || '我') + '（我）');
+    setText($('r_whoOther'), st.names[other] || '对方');
+    setText($('r_wordMe'), st.youWord || '—');
+    setText($('r_wordOther'), st.otherWord || '—');
+
+    $('r_cardMe').classList.toggle('hit', hit);
+    $('r_cardOther').classList.toggle('hit', hit);
+
+    var v = $('r_verdict');
+    v.className = 'verdict' + (hit ? ' match' : '');
+    v.innerHTML = hit ? '撞上了 · <b>同词相遇</b>' : '差一点 · <b>再靠近一步</b>';
+
+    var btn = $('r_next');
+    var acked = !!st.acks[st.you];
+    btn.disabled = acked || hit;
+    setText(btn, hit ? '同词成功' : (acked ? '等对方…' : '继续联想 →'));
+    if (hit) btn.hidden = true; else btn.hidden = false;
+  }
+
+  function renderWin(st) {
+    var other = otherOf(st.you);
+    var h = st.history.length ? st.history[st.history.length - 1] : { a: '', b: '' };
+    setText($('w_round'), String(st.round));
+    setText($('w_word'), h.a || '—');
+    setText($('w_tag'), st.round <= 2 ? '神仙默契' : st.round <= 4 ? '心意相通' : st.round <= 7 ? '渐入佳境' : '缘分深藏');
+    setText($('w_sub'), h.a === h.b
+      ? '两个人写的字都一模一样'
+      : ((st.names[st.you] || '我') + ' 写「' + h.a + '」 · ' + (st.names[other] || '对方') + ' 写「' + h.b + '」'));
+    $('w_chain').innerHTML = chainHTML(st.history);
+  }
+
+  function renderOver(st) {
+    var o = st.over || { reason: 'over', text: '这一局结束了' };
+    setText($('o_emoji'), o.reason === 'timeout' ? '⌛' : '🍃');
+    setText($('o_title'), o.reason === 'timeout' ? '时间到' : '就到这儿');
+    setText($('o_text'), o.text || '');
+    $('o_chain').innerHTML = chainHTML(st.history);
+  }
+
+  /* ================= 倒计时 ================= */
+  setInterval(function () {
+    var st = S.st;
+    if (!st || st.phase !== 'play' || !st.deadline) {
+      $('p_timer').classList.add('off');
+      setText($('p_timerText'), '∞');
+      return;
+    }
+    $('p_timer').classList.remove('off');
+    if (st.paused) { setText($('p_timerText'), '⏸'); return; }
+    var remain = st.deadline - (Date.now() + S.off);
+    if (remain < 0) remain = 0;
+    setText($('p_timerText'), String(Math.ceil(remain / 1000)));
+    var total = (st.timeLimit || 1) * 1000;
+    var p = Math.max(0, Math.min(1, remain / total));
+    $('ringFg').style.strokeDashoffset = String(119.4 * (1 - p));
+    $('p_timer').classList.toggle('warn', remain <= 5000);
+  }, 100);
+
+  /* ================= 交互 ================= */
+  function setMode(m) {
+    S.mode = m;
+    Array.prototype.forEach.call($('h_seg').querySelectorAll('button'), function (b) {
+      b.classList.toggle('on', b.getAttribute('data-tab') === m);
+    });
+    $('h_joinWrap').hidden = (m !== 'join');
+    $('h_limitWrap').hidden = (m !== 'create');
+    setText($('h_go'), m === 'create' ? '创建房间' : '加入房间');
+    if (m === 'join') setTimeout(function () { try { $('h_code').focus(); } catch (e) {} }, 60);
+  }
+
+  $('h_seg').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-tab]') : null;
+    if (b) setMode(b.getAttribute('data-tab'));
+  });
+
+  $('h_limit').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-l]') : null;
+    if (!b) return;
+    S.limit = Number(b.getAttribute('data-l'));
+    Array.prototype.forEach.call($('h_limit').querySelectorAll('button'), function (x) {
+      x.classList.toggle('on', Number(x.getAttribute('data-l')) === S.limit);
+    });
+  });
+
+  $('l_limit').addEventListener('click', async function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-l]') : null;
+    if (!b || !S.st || S.st.host !== S.st.you) return;
+    try {
+      var d = await api('limit', { limit: Number(b.getAttribute('data-l')) });
+      if (d.error) { toast(errText(d.error)); return; }
+      applyResponse(d); render();
+    } catch (err) { toast('网络不太好'); }
+  });
+
+  $('h_go').addEventListener('click', async function () {
+    var name = ($('h_name').value || '').trim().slice(0, 8) || '玩家';
+    store.set('tcxy.online.name', name);
+    var btn = $('h_go');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    try {
+      var d;
+      if (S.mode === 'create') {
+        d = await api('create', { name: name, limit: S.limit });
+      } else {
+        var code = ($('h_code').value || '').trim().toUpperCase();
+        if (code.length < 4) { toast('房间码是 4 位'); return; }
+        d = await api('join', { code: code, name: name });
+      }
+      if (d.error) { toast(errText(d.error)); return; }
+      S.session = { code: d.code, pid: d.pid, token: d.token };
+      store.set('tcxy.online.session', S.session);
+      applyResponse(d);
+      S.lastRound = -1;
+      lastPhase = '';
+      render();
+      pollLoop();
+    } catch (e) {
+      toast('连不上服务器，确认服务已启动');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('l_ready').addEventListener('click', async function () {
+    if (!S.st) return;
+    var want = !S.st.ready[S.st.you];
+    try {
+      var d = await api('ready', { ready: want });
+      if (d.error) { toast(errText(d.error)); return; }
+      applyResponse(d); render();
+    } catch (e) { toast('网络不太好'); }
+  });
+
+  $('l_share').addEventListener('click', function () {
+    var code = S.st ? S.st.code : '';
+    var url = location.origin + location.pathname + '?room=' + code;
+    var text = '来玩同词相遇，房间码 ' + code + '\n' + url;
+    var done = function (ok) {
+      toast(ok ? '邀请链接已复制' : '复制失败，把房间码发过去吧');
+    };
+    if (navigator.share) {
+      navigator.share({ title: '同词相遇', text: text }).catch(function () { copy(text).then(done); });
+    } else {
+      copy(text).then(done);
+    }
+  });
+
+  $('l_leave').addEventListener('click', leave);
+  $('p_leave').addEventListener('click', leave);
+
+  async function leave() {
+    if (!confirm('确定离开房间？')) return;
+    S.alive = false;
+    pollGen += 1;
+    try { await api('leave'); } catch (e) {}
+    S.session = null; S.st = null; S.v = 0;
+    store.del('tcxy.online.session');
+    lastPhase = '';
+    show('home');
+  }
+
+  $('p_submit').addEventListener('click', submitWord);
+  $('p_input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      if (e.isComposing) return;
+      e.preventDefault();
+      submitWord();
+    }
+  });
+
+  async function submitWord() {
+    if (!S.st || S.pending) return;
+    var w = ($('p_input').value || '').replace(/\s+/g, ' ').trim();
+    if (!w) {
+      toast('先写一个词吧');
+      var f = $('p_field');
+      f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+      return;
+    }
+    S.pending = true;
+    try {
+      var d = await api('submit', { word: w });
+      if (d.error) { toast(errText(d.error)); return; }
+      applyResponse(d);
+      tone(540, 0.09, 'sine', 0.13); tone(810, 0.13, 'sine', 0.09, 0.07);
+      vibrate(18);
+      render();
+    } catch (e) {
+      toast('提交失败，再试一次');
+    } finally {
+      S.pending = false;
+    }
+  }
+
+  $('r_next').addEventListener('click', async function () {
+    if (!S.st || S.st.acks[S.st.you]) return;
+    try {
+      var d = await api('ack');
+      if (d.error) { toast(errText(d.error)); return; }
+      applyResponse(d); render();
+    } catch (e) { toast('网络不太好'); }
+  });
+
+  async function restart() {
+    try {
+      var d = await api('restart');
+      if (d.error) { toast(errText(d.error)); return; }
+      applyResponse(d);
+      S.lastRound = -1;
+      lastPhase = '';
+      render();
+    } catch (e) { toast('网络不太好'); }
+  }
+  $('w_again').addEventListener('click', restart);
+  $('o_again').addEventListener('click', restart);
+
+  $('o_home').addEventListener('click', leave);
+
+  $('w_share').addEventListener('click', function () {
+    var st = S.st; if (!st) return;
+    var h = st.history.length ? st.history[st.history.length - 1] : { a: '' };
+    var lines = st.history.map(function (x, i) { return '第' + (i + 1) + '轮：' + (x.a || '—') + ' / ' + (x.b || '—'); });
+    var text = '【同词相遇】我们第 ' + st.round + ' 轮想到了一起：「' + h.a + '」\n' + lines.join('\n') + '\n你也来试试？';
+    var done = function (ok) { toast(ok ? '战绩已复制' : '截图发出去更直接'); };
+    if (navigator.share) {
+      navigator.share({ title: '同词相遇', text: text }).catch(function () { copy(text).then(done); });
+    } else {
+      copy(text).then(done);
+    }
+  });
+
+  function copy(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text)
+          .then(function () { return true; })
+          .catch(function () { return Promise.resolve(legacyCopy(text)); });
+      }
+    } catch (e) {}
+    return Promise.resolve(legacyCopy(text));
+  }
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, ta.value.length);
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) { return false; }
+  }
+
+  /* ================= 启动 ================= */
+  function syncViewport() {
+    var vv = window.visualViewport;
+    var root = document.documentElement.style;
+    root.setProperty('--app-h', Math.round(vv ? vv.height : window.innerHeight) + 'px');
+    root.setProperty('--app-top', Math.round(vv ? vv.offsetTop : 0) + 'px');
+  }
+
+  (async function boot() {
+    sizeFx();
+    syncViewport();
+
+    // 直接双击 html 打开时没有服务端，先把话说明白
+    if (location.protocol === 'file:') {
+      var hint = $('h_hint');
+      hint.textContent = '联机版必须通过服务器打开：双击「启动服务器.bat」，再用打印出来的地址访问';
+      hint.style.color = '#ff9db5';
+      $('h_go').disabled = true;
+      return;
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncViewport);
+      window.visualViewport.addEventListener('scroll', syncViewport);
+    }
+    window.addEventListener('resize', function () { sizeFx(); syncViewport(); });
+    window.addEventListener('orientationchange', function () { setTimeout(syncViewport, 250); });
+
+    var savedName = store.get('tcxy.online.name', '');
+    if (savedName) $('h_name').value = savedName;
+
+    var qs = new URLSearchParams(location.search);
+    var room = (qs.get('room') || '').toUpperCase().slice(0, 4);
+    if (room) { setMode('join'); $('h_code').value = room; }
+
+    var saved = store.get('tcxy.online.session', null);
+    if (saved && saved.code && saved.token) {
+      S.session = saved;
+      var d = null;
+      try {
+        d = await api('state', { v: 0 });
+      } catch (e) {
+        S.session = null;
+        S.st = null;
+        show('home');
+        toast('连不上服务器，确认服务已启动');
+        return;
+      }
+      if (!d || d.error) {
+        // 房间已经不存在了，清掉本地记录
+        store.del('tcxy.online.session');
+        S.session = null;
+        S.st = null;
+        show('home');
+        if (d && d.error) toast(ERR[d.error] || '房间已失效');
+        return;
+      }
+      applyResponse(d);
+      S.lastRound = -1;
+      lastPhase = '';
+      render();
+      pollLoop();
+      return;
+    }
+    show('home');
+  })();
+})();
+</script>
+</body>
+</html>
